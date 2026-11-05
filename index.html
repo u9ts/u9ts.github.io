@@ -513,6 +513,7 @@ const THEMES = [
   { id:"ORTO", name:"Aerial and satellite imagery", hint:"orthophotos, land cover" },
   { id:"ELEV", name:"Elevation data",          hint:"terrain models, lidar" },
   { id:"BATH", name:"Depth data",              hint:"seabed, bathymetry" },
+  { id:"GEOL", name:"Geology",                 hint:"bedrock, superficial deposits" },
   { id:"ENVI", name:"Environment and climate",hint:"nature, weather, pollution" },
   { id:"SOCI", name:"Statistics",             hint:"national statistics offices" },
   { id:"ECON", name:"Economy and business",   hint:"companies, trade, prices" },
@@ -589,6 +590,7 @@ const EU_SPECIAL = {
         ["GISCO","Eurostat","https://ec.europa.eu/eurostat/web/gisco/geodata",1]],
   ELEV:[["Copernicus DEM","ESA and EU","https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",1]],
   BATH:[["EMODnet Bathymetry","European Marine Observation Network","https://www.emodnet-bathymetry.eu/",1]],
+  GEOL:[["EGDI Data Search","EuroGeoSurveys","https://www.europe-geology.eu/data-and-services/data-search",1]],
   ENVI:[["EEA Datahub","European Environment Agency","https://www.eea.europa.eu/en/datahub",1],
         ["Climate Data Store","ECMWF (Copernicus)","https://cds.climate.copernicus.eu",1]],
   SOCI:[["Eurostat Database","European Commission","https://ec.europa.eu/eurostat/data/database",1]],
@@ -612,7 +614,8 @@ const EU_SPECIAL = {
 
 /* National specialist sources. Shown before the Europe-wide ones. */
 const NAT_SPECIAL = {
-  EU:{ SOCI:[["Eurostat Database","European Commission","https://ec.europa.eu/eurostat/data/database",1]] },
+  EU:{ SOCI:[["Eurostat Database","European Commission","https://ec.europa.eu/eurostat/data/database",1]],
+       GEOL:[["EGDI Data Search","EuroGeoSurveys","https://www.europe-geology.eu/data-and-services/data-search",1]] },
   GLOBAL:{ REGI:[["OpenStreetMap data","OSM Foundation","https://wiki.openstreetmap.org/wiki/Download",1],
                  ["Natural Earth","Natural Earth","https://www.naturalearthdata.com/downloads/",1]],
            ORTO:[["NASA Earthdata Search","NASA","https://search.earthdata.nasa.gov",1],
@@ -637,6 +640,7 @@ const NAT_SPECIAL = {
                  ["IATI Registry","IATI","https://iatiregistry.org",1]] },
   no:{ ORTO:[["Norge i bilder","Kartverket — fri visning, nedlasting krever Norge digitalt","https://www.norgeibilder.no",1]],
        ELEV:[["Høydedata","Norwegian Mapping Authority","https://hoydedata.no",1]],
+       GEOL:[["Geological datasets in Kartkatalogen","Geological Survey of Norway","https://kartkatalog.geonorge.no",1]],
        REGI:[["Geonorge","Norwegian Mapping Authority","https://www.geonorge.no",1],
              ["Kilden","NIBIO","https://kilden.nibio.no",1]],
        ENVI:[["Seklima","Norwegian Meteorological Institute","https://seklima.met.no/observations/",1],
@@ -653,6 +657,7 @@ const NAT_SPECIAL = {
        EDUC:[["Norwegian Polar Data Centre","NPI","https://data.npolar.no/dataset/",1]] },
   se:{ REGI:[["Geodata.se","Lantmäteriet","https://www.geodata.se",1]],
        ELEV:[["Markhöjdmodell Nedladdning","Lantmäteriet","https://www.lantmateriet.se/sv/geodata/vara-produkter/produktlista/markhojdmodell-nedladdning/",1]],
+       GEOL:[["Geological data","Geological Survey of Sweden","https://www.sgu.se/en/products/geological-data/",1]],
        ENVI:[["SMHI Öppna data","SMHI","https://www.smhi.se/data",1]],
        SOCI:[["Statistikdatabasen","SCB","https://www.statistikdatabasen.scb.se/pxweb/sv/ssd/",1]],
        TRAN:[["Trafiklab APIs","Samtrafiken","https://www.trafiklab.se/api/our-apis",1]] },
@@ -731,7 +736,7 @@ const NAT_SPECIAL = {
 };
 
 
-const NO_THEMES = {"REGI": {"name": "Kart og geodata", "hint": "terreng, eiendom, arealbruk"}, "ORTO": {"name": "Fly- og satellittbilder", "hint": "ortofoto, arealdekke"}, "ELEV": {"name": "Høydedata", "hint": "terrengmodeller, laserdata"}, "BATH": {"name": "Dybdedata", "hint": "havbunn, batymetri"}, "ENVI": {"name": "Miljø og klima", "hint": "natur, vær, forurensning"}, "SOCI": {"name": "Statistikk", "hint": "nasjonale statistikkbyråer"}, "ECON": {"name": "Økonomi og næring", "hint": "foretak, handel, priser"}, "GOVE": {"name": "Forvaltning", "hint": "registre, budsjett, valg"}, "TRAN": {"name": "Transport", "hint": "veg, kollektiv, sjøfart"}, "HEAL": {"name": "Helse", "hint": "folkehelse, sykdom"}, "ENER": {"name": "Energi", "hint": "kraft, forbruk, nett"}, "AGRI": {"name": "Landbruk og fiskeri", "hint": "jord, skog, hav"}, "EDUC": {"name": "Utdanning", "hint": "skole, forskning"}, "JUST": {"name": "Justis", "hint": "lover, rettsvesen"}, "INTR": {"name": "Internasjonalt", "hint": "bistand, samarbeid"}};
+const NO_THEMES = {"REGI": {"name": "Kart og geodata", "hint": "terreng, eiendom, arealbruk"}, "ORTO": {"name": "Fly- og satellittbilder", "hint": "ortofoto, arealdekke"}, "ELEV": {"name": "Høydedata", "hint": "terrengmodeller, laserdata"}, "BATH": {"name": "Dybdedata", "hint": "havbunn, batymetri"}, "GEOL": {"name": "Geologi", "hint": "berggrunn, løsmasser"}, "ENVI": {"name": "Miljø og klima", "hint": "natur, vær, forurensning"}, "SOCI": {"name": "Statistikk", "hint": "nasjonale statistikkbyråer"}, "ECON": {"name": "Økonomi og næring", "hint": "foretak, handel, priser"}, "GOVE": {"name": "Forvaltning", "hint": "registre, budsjett, valg"}, "TRAN": {"name": "Transport", "hint": "veg, kollektiv, sjøfart"}, "HEAL": {"name": "Helse", "hint": "folkehelse, sykdom"}, "ENER": {"name": "Energi", "hint": "kraft, forbruk, nett"}, "AGRI": {"name": "Landbruk og fiskeri", "hint": "jord, skog, hav"}, "EDUC": {"name": "Utdanning", "hint": "skole, forskning"}, "JUST": {"name": "Justis", "hint": "lover, rettsvesen"}, "INTR": {"name": "Internasjonalt", "hint": "bistand, samarbeid"}};
 const NO_PLACES = {"EU": "Europa (samlet)", "GLOBAL": "Global", "NORDIC": "Norden", "al": "Albania", "at": "Østerrike", "be": "Belgia", "bg": "Bulgaria", "ch": "Sveits", "cy": "Kypros", "cz": "Tsjekkia", "de": "Tyskland", "dk": "Danmark", "ee": "Estland", "es": "Spania", "fi": "Finland", "fr": "Frankrike", "gr": "Hellas", "hr": "Kroatia", "hu": "Ungarn", "ie": "Irland", "is": "Island", "it": "Italia", "lt": "Litauen", "lu": "Luxembourg", "lv": "Latvia", "md": "Moldova", "me": "Montenegro", "mk": "Nord-Makedonia", "mt": "Malta", "nl": "Nederland", "no": "Norge", "pl": "Polen", "pt": "Portugal", "ro": "Romania", "rs": "Serbia", "se": "Sverige", "si": "Slovenia", "sk": "Slovakia", "ua": "Ukraina", "uk": "Storbritannia"};
 const ORG_NO = {
 "Iceland's catalogue in the EU portal": "Islands katalog i EU-portalen",
@@ -766,6 +771,9 @@ const ORG_NO = {
 "FAO": "FAO",
 "Kartverket — fri visning, nedlasting krever Norge digitalt": "Kartverket – fri visning, nedlasting krever Norge digitalt",
 "Rijkswaterstaat": "Rijkswaterstaat (Nederland)",
+"Geological Survey of Norway": "Norges geologiske undersøkelse",
+"Geological Survey of Sweden": "Sveriges geologiske undersøkelse",
+"EuroGeoSurveys": "EuroGeoSurveys",
 "GEBCO": "GEBCO",
 "ESA and EU": "ESA og EU",
 "CNIG / IGN": "Spanias kartverk",
@@ -891,7 +899,10 @@ const NAME_NO = {
 "OpenStreetMap data": "OpenStreetMap-data",
 "AHN — Actueel Hoogtebestand Nederland": "AHN – Nederlands høydemodell",
 "Markhöjdmodell Nedladdning": "Markhöjdmodell (nedlasting)",
-"GEBCO gridded bathymetry": "GEBCO dybdemodell"
+"GEBCO gridded bathymetry": "GEBCO dybdemodell",
+"Geological datasets in Kartkatalogen": "Geologiske datasett i Kartkatalogen",
+"Geological data": "Geologiske data",
+"EGDI Data Search": "EGDI datasøk"
 };
 
 const TOOLS = [
@@ -1130,7 +1141,7 @@ const GLOSSARY = [
 
 
 /* Tema der fravaer av spesialkilde betyr «ikke kartlagt», ikke «samlet i nasjonalportalen». */
-const NARROW_THEMES = new Set(["ELEV","BATH"]);
+const NARROW_THEMES = new Set(["ELEV","BATH","GEOL"]);
 
 const CAP = {"EU": ["Brussel", "Brussels", 50.85, 4.35, "Europe/Brussels"], "GLOBAL": ["Genève", "Geneva", 46.2, 6.14, "Europe/Zurich"], "NORDIC": ["Oslo", "Oslo", 59.91, 10.75, "Europe/Oslo"], "al": ["Tirana", "Tirana", 41.33, 19.82, "Europe/Tirane"], "at": ["Wien", "Vienna", 48.21, 16.37, "Europe/Vienna"], "be": ["Brussel", "Brussels", 50.85, 4.35, "Europe/Brussels"], "bg": ["Sofia", "Sofia", 42.7, 23.32, "Europe/Sofia"], "ch": ["Bern", "Bern", 46.95, 7.45, "Europe/Zurich"], "cy": ["Nikosia", "Nicosia", 35.17, 33.36, "Asia/Nicosia"], "cz": ["Praha", "Prague", 50.09, 14.42, "Europe/Prague"], "de": ["Berlin", "Berlin", 52.52, 13.4, "Europe/Berlin"], "dk": ["København", "Copenhagen", 55.68, 12.57, "Europe/Copenhagen"], "ee": ["Tallinn", "Tallinn", 59.44, 24.75, "Europe/Tallinn"], "es": ["Madrid", "Madrid", 40.42, -3.7, "Europe/Madrid"], "fi": ["Helsingfors", "Helsinki", 60.17, 24.94, "Europe/Helsinki"], "fr": ["Paris", "Paris", 48.86, 2.35, "Europe/Paris"], "gr": ["Athen", "Athens", 37.98, 23.73, "Europe/Athens"], "hr": ["Zagreb", "Zagreb", 45.81, 15.98, "Europe/Zagreb"], "hu": ["Budapest", "Budapest", 47.5, 19.04, "Europe/Budapest"], "ie": ["Dublin", "Dublin", 53.35, -6.26, "Europe/Dublin"], "is": ["Reykjavík", "Reykjavik", 64.15, -21.94, "Atlantic/Reykjavik"], "it": ["Roma", "Rome", 41.9, 12.5, "Europe/Rome"], "lt": ["Vilnius", "Vilnius", 54.69, 25.28, "Europe/Vilnius"], "lu": ["Luxembourg", "Luxembourg", 49.61, 6.13, "Europe/Luxembourg"], "lv": ["Riga", "Riga", 56.95, 24.11, "Europe/Riga"], "md": ["Chișinău", "Chisinau", 47.01, 28.86, "Europe/Chisinau"], "me": ["Podgorica", "Podgorica", 42.44, 19.26, "Europe/Podgorica"], "mk": ["Skopje", "Skopje", 41.996, 21.43, "Europe/Skopje"], "mt": ["Valletta", "Valletta", 35.9, 14.51, "Europe/Malta"], "nl": ["Amsterdam", "Amsterdam", 52.37, 4.9, "Europe/Amsterdam"], "no": ["Oslo", "Oslo", 59.91, 10.75, "Europe/Oslo"], "pl": ["Warszawa", "Warsaw", 52.23, 21.01, "Europe/Warsaw"], "pt": ["Lisboa", "Lisbon", 38.72, -9.14, "Europe/Lisbon"], "ro": ["Bucuresti", "Bucharest", 44.43, 26.1, "Europe/Bucharest"], "rs": ["Beograd", "Belgrade", 44.79, 20.45, "Europe/Belgrade"], "se": ["Stockholm", "Stockholm", 59.33, 18.07, "Europe/Stockholm"], "si": ["Ljubljana", "Ljubljana", 46.06, 14.51, "Europe/Ljubljana"], "sk": ["Bratislava", "Bratislava", 48.15, 17.11, "Europe/Bratislava"], "ua": ["Kyiv", "Kyiv", 50.45, 30.52, "Europe/Kyiv"], "uk": ["London", "London", 51.51, -0.13, "Europe/London"]};
 

@@ -340,6 +340,27 @@
     header.hero{ padding:24px 0 18px; }
   }
 
+  /* ---------- faktalinje og kopier-lenke ---------- */
+  .fun-fact{
+    margin:10px 0 0; min-height:1.1em;
+    font-size:0.82rem; color:var(--text-soft);
+  }
+  .fun-fact .flag{ margin-right:7px; }
+  .copy-link{
+    display:block; width:fit-content; margin:16px 0 0;
+    font-family:"JetBrains Mono",monospace; font-size:0.72rem; letter-spacing:0.05em;
+    color:var(--text-faint); background:none; border:none; padding:0; cursor:pointer;
+    text-decoration:underline; text-underline-offset:3px;
+  }
+  .copy-link:hover{ color:var(--ice); }
+  .copy-link:focus-visible{ outline:2px solid var(--ice); outline-offset:2px; }
+
+  /* ---------- ordliste ---------- */
+  .term{ padding:9px 0; border-bottom:1px solid var(--line); }
+  .term:last-child{ border-bottom:none; }
+  .term-n{ font-weight:600; font-size:0.94rem; color:var(--brass); }
+  .term-d{ font-size:0.85rem; color:var(--text-soft); margin:2px 0 0; }
+
 
   /* ---------- lys drakt ---------- */
   body.light{
@@ -426,6 +447,8 @@
       <select id="place" aria-label="Velg land eller region"></select>
       <span class="coords" id="daylight"></span>
     </div>
+    <p class="fun-fact" id="funFact" aria-live="polite"></p>
+    <button type="button" class="copy-link" id="copyBtn"></button>
   </div>
 
   <div class="step">
@@ -445,6 +468,12 @@
     <summary><span id="orgsTitle">Fagmiljøer og foreninger</span></summary>
     <p class="tools-note" id="orgsNote"></p>
     <div id="orgsBody"></div>
+  </details>
+
+  <details class="tools" id="glossaryBox">
+    <summary><span id="glossaryTitle">Ordliste</span></summary>
+    <p class="tools-note" id="glossaryNote"></p>
+    <div id="glossaryBody"></div>
   </details>
 
   <footer>
@@ -476,8 +505,10 @@
 const THEMES = [
   { id:"REGI", name:"Maps and geodata",       hint:"terrain, cadastre, land use" },
   { id:"ORTO", name:"Aerial and satellite imagery", hint:"orthophotos, land cover" },
+  { id:"ELEV", name:"Elevation data",          hint:"terrain models, lidar" },
+  { id:"BATH", name:"Depth data",              hint:"seabed, bathymetry" },
   { id:"ENVI", name:"Environment and climate",hint:"nature, weather, pollution" },
-  { id:"SOCI", name:"Population and society", hint:"demography, living conditions" },
+  { id:"SOCI", name:"Statistics",             hint:"national statistics offices" },
   { id:"ECON", name:"Economy and business",   hint:"companies, trade, prices" },
   { id:"GOVE", name:"Government",             hint:"registers, budgets, elections" },
   { id:"TRAN", name:"Transport",              hint:"roads, transit, shipping" },
@@ -486,7 +517,6 @@ const THEMES = [
   { id:"AGRI", name:"Agriculture and fisheries",hint:"soil, forest, sea" },
   { id:"EDUC", name:"Education",              hint:"schools, research" },
   { id:"JUST", name:"Justice",                hint:"law, courts" },
-  { id:"TECH", name:"Research data",          hint:"publications, datasets" },
   { id:"INTR", name:"International",          hint:"aid, cooperation" },
 ];
 
@@ -551,6 +581,8 @@ const EU_SPECIAL = {
   REGI:[["data.europa.eu","European Commission — replaced the INSPIRE Geoportal in July 2026","https://data.europa.eu",1],
         ["Copernicus Land","ESA and EU","https://land.copernicus.eu",1],
         ["GISCO","Eurostat","https://ec.europa.eu/eurostat/web/gisco/geodata",1]],
+  ELEV:[["Copernicus DEM","ESA and EU","https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",1]],
+  BATH:[["EMODnet Bathymetry","European Marine Observation Network","https://www.emodnet-bathymetry.eu/",1]],
   ENVI:[["EEA Datahub","European Environment Agency","https://www.eea.europa.eu/en/datahub",1],
         ["Climate Data Store","ECMWF (Copernicus)","https://cds.climate.copernicus.eu",1]],
   SOCI:[["Eurostat Database","European Commission","https://ec.europa.eu/eurostat/data/database",1]],
@@ -564,20 +596,23 @@ const EU_SPECIAL = {
         ["Eurostat energy","European Commission","https://ec.europa.eu/eurostat/web/energy/database",1]],
   AGRI:[["EU Agri-food data","European Commission","https://agridata.ec.europa.eu/extensions/DataPortal/home.html",1],
         ["EMODnet","European Marine Observation Network","https://emodnet.ec.europa.eu/geonetwork/srv/eng/catalog.search#/search",1]],
-  EDUC:[["Eurydice","European Commission","https://eurydice.eacea.ec.europa.eu/data-and-visuals",1]],
-  JUST:[["EUR-Lex","European Commission","https://eur-lex.europa.eu/content/help/data-reuse/reuse-contents-eurlex-details.html",1]],
-  TECH:[["OpenAIRE Explore","OpenAIRE","https://explore.openaire.eu",1],
+  EDUC:[["Eurydice","European Commission","https://eurydice.eacea.ec.europa.eu/data-and-visuals",1],
+        ["OpenAIRE Explore","OpenAIRE","https://explore.openaire.eu",1],
         ["Zenodo","CERN","https://zenodo.org/search",1],
         ["CORDIS","European Commission","https://cordis.europa.eu/projects",1]],
+  JUST:[["EUR-Lex","European Commission","https://eur-lex.europa.eu/content/help/data-reuse/reuse-contents-eurlex-details.html",1]],
   INTR:[["IATI Registry","IATI","https://iatiregistry.org",1]],
 };
 
 /* National specialist sources. Shown before the Europe-wide ones. */
 const NAT_SPECIAL = {
+  EU:{ SOCI:[["Eurostat Database","European Commission","https://ec.europa.eu/eurostat/data/database",1]] },
   GLOBAL:{ REGI:[["OpenStreetMap data","OSM Foundation","https://wiki.openstreetmap.org/wiki/Download",1],
                  ["Natural Earth","Natural Earth","https://www.naturalearthdata.com/downloads/",1]],
            ORTO:[["NASA Earthdata Search","NASA","https://search.earthdata.nasa.gov",1],
                  ["Copernicus Data Space","ESA and EU","https://dataspace.copernicus.eu",1]],
+           ELEV:[["Copernicus DEM","ESA and EU","https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",1]],
+           BATH:[["GEBCO gridded bathymetry","GEBCO","https://www.gebco.net/data-products/gridded-bathymetry-data",1]],
            ENVI:[["GBIF","Global Biodiversity Information Facility","https://www.gbif.org",1],
                  ["NASA Earthdata Search","NASA","https://search.earthdata.nasa.gov",1]],
            SOCI:[["UN Data","United Nations","https://data.un.org",1],
@@ -589,12 +624,13 @@ const NAT_SPECIAL = {
            HEAL:[["Global Health Observatory","World Health Organization","https://www.who.int/data/gho",1]],
            AGRI:[["FAOSTAT","FAO","https://www.fao.org/faostat/en/#data",1]],
            ENER:[["IRENASTAT","IRENA","https://pxweb.irena.org/pxweb/en/IRENASTAT/",1]],
-           EDUC:[["UIS Data Browser","UNESCO","https://databrowser.uis.unesco.org/",1]],
-           TECH:[["Zenodo","CERN","https://zenodo.org/search",1],
+           EDUC:[["UIS Data Browser","UNESCO","https://databrowser.uis.unesco.org/",1],
+                 ["Zenodo","CERN","https://zenodo.org/search",1],
                  ["OpenAIRE Explore","OpenAIRE","https://explore.openaire.eu",1]],
            INTR:[["Humanitarian Data Exchange","UN OCHA","https://data.humdata.org",1],
                  ["IATI Registry","IATI","https://iatiregistry.org",1]] },
   no:{ ORTO:[["Norge i bilder","Kartverket — fri visning, nedlasting krever Norge digitalt","https://www.norgeibilder.no",1]],
+       ELEV:[["Høydedata","Norwegian Mapping Authority","https://hoydedata.no",1]],
        REGI:[["Geonorge","Norwegian Mapping Authority","https://www.geonorge.no",1],
              ["Kilden","NIBIO","https://kilden.nibio.no",1]],
        ENVI:[["Frost","Norwegian Meteorological Institute","https://frost.met.no",1],
@@ -608,12 +644,14 @@ const NAT_SPECIAL = {
        ENER:[["NVE map catalogue","NVE","https://kartkatalog.nve.no",1]],
        AGRI:[["Kilden","NIBIO","https://kilden.nibio.no",1],
              ["Marine datasets","IMR","https://kart.hi.no/datasett/",1]],
-       TECH:[["Norwegian Polar Data Centre","NPI","https://data.npolar.no/dataset/",1]] },
+       EDUC:[["Norwegian Polar Data Centre","NPI","https://data.npolar.no/dataset/",1]] },
   se:{ REGI:[["Geodata.se","Lantmäteriet","https://www.geodata.se",1]],
+       ELEV:[["Markhöjdmodell Nedladdning","Lantmäteriet","https://www.lantmateriet.se/sv/geodata/vara-produkter/produktlista/markhojdmodell-nedladdning/",1]],
        ENVI:[["SMHI Öppna data","SMHI","https://www.smhi.se/data",1]],
        SOCI:[["Statistikdatabasen (PxWebApi)","SCB","https://www.scb.se/en/services/open-data-api/pxwebapi/",1]],
        TRAN:[["Trafiklab APIs","Samtrafiken","https://www.trafiklab.se/api/our-apis",1]] },
   dk:{ ORTO:[["Ortofoto","Danish Climate Data Agency","https://dataforsyningen.dk",1]],
+       ELEV:[["Danmarks Højdemodel (DHM)","Danish Climate Data Agency","https://dataforsyningen.dk",1]],
        REGI:[["Dataforsyningen","Danish Climate Data Agency","https://dataforsyningen.dk",1]],
        ENVI:[["DMI Frie data","DMI","https://www.dmi.dk/friedata",1]],
        SOCI:[["Statistikbanken","Danmarks Statistik","https://www.statistikbanken.dk",1]] },
@@ -638,6 +676,7 @@ const NAT_SPECIAL = {
              ["DEFRA Data Services","DEFRA","https://environment.data.gov.uk",1]],
        SOCI:[["ONS API","Office for National Statistics","https://developer.ons.gov.uk",1]] },
   nl:{ ORTO:[["Luchtfoto RGB (open)","PDOK / Beeldmateriaal Nederland","https://www.pdok.nl/introductie/-/article/pdok-luchtfoto-rgb-open-",1]],
+       ELEV:[["AHN — Actueel Hoogtebestand Nederland","Rijkswaterstaat","https://www.ahn.nl/open-data/",1]],
        REGI:[["PDOK","Kadaster","https://www.pdok.nl",1]],
        ENVI:[["KNMI Data Platform","KNMI","https://dataplatform.knmi.nl",1]],
        SOCI:[["StatLine open data","CBS","https://www.cbs.nl/en-gb/our-services/open-data/statline-as-open-data",1]] },
@@ -686,7 +725,7 @@ const NAT_SPECIAL = {
 };
 
 
-const NO_THEMES = {"REGI": {"name": "Kart og geodata", "hint": "terreng, eiendom, arealbruk"}, "ORTO": {"name": "Fly- og satellittbilder", "hint": "ortofoto, arealdekke"}, "ENVI": {"name": "Miljø og klima", "hint": "natur, vær, forurensning"}, "SOCI": {"name": "Befolkning og samfunn", "hint": "demografi, levekår"}, "ECON": {"name": "Økonomi og næring", "hint": "foretak, handel, priser"}, "GOVE": {"name": "Forvaltning", "hint": "registre, budsjett, valg"}, "TRAN": {"name": "Transport", "hint": "veg, kollektiv, sjøfart"}, "HEAL": {"name": "Helse", "hint": "folkehelse, sykdom"}, "ENER": {"name": "Energi", "hint": "kraft, forbruk, nett"}, "AGRI": {"name": "Landbruk og fiskeri", "hint": "jord, skog, hav"}, "EDUC": {"name": "Utdanning", "hint": "skole, forskning"}, "JUST": {"name": "Justis", "hint": "lover, rettsvesen"}, "TECH": {"name": "Forskningsdata", "hint": "publikasjoner, datasett"}, "INTR": {"name": "Internasjonalt", "hint": "bistand, samarbeid"}};
+const NO_THEMES = {"REGI": {"name": "Kart og geodata", "hint": "terreng, eiendom, arealbruk"}, "ORTO": {"name": "Fly- og satellittbilder", "hint": "ortofoto, arealdekke"}, "ELEV": {"name": "Høydedata", "hint": "terrengmodeller, laserdata"}, "BATH": {"name": "Dybdedata", "hint": "havbunn, batymetri"}, "ENVI": {"name": "Miljø og klima", "hint": "natur, vær, forurensning"}, "SOCI": {"name": "Statistikk", "hint": "nasjonale statistikkbyråer"}, "ECON": {"name": "Økonomi og næring", "hint": "foretak, handel, priser"}, "GOVE": {"name": "Forvaltning", "hint": "registre, budsjett, valg"}, "TRAN": {"name": "Transport", "hint": "veg, kollektiv, sjøfart"}, "HEAL": {"name": "Helse", "hint": "folkehelse, sykdom"}, "ENER": {"name": "Energi", "hint": "kraft, forbruk, nett"}, "AGRI": {"name": "Landbruk og fiskeri", "hint": "jord, skog, hav"}, "EDUC": {"name": "Utdanning", "hint": "skole, forskning"}, "JUST": {"name": "Justis", "hint": "lover, rettsvesen"}, "INTR": {"name": "Internasjonalt", "hint": "bistand, samarbeid"}};
 const NO_PLACES = {"EU": "Europa (samlet)", "GLOBAL": "Global", "NORDIC": "Norden", "al": "Albania", "at": "Østerrike", "be": "Belgia", "bg": "Bulgaria", "ch": "Sveits", "cy": "Kypros", "cz": "Tsjekkia", "de": "Tyskland", "dk": "Danmark", "ee": "Estland", "es": "Spania", "fi": "Finland", "fr": "Frankrike", "gr": "Hellas", "hr": "Kroatia", "hu": "Ungarn", "ie": "Irland", "is": "Island", "it": "Italia", "lt": "Litauen", "lu": "Luxembourg", "lv": "Latvia", "md": "Moldova", "me": "Montenegro", "mk": "Nord-Makedonia", "mt": "Malta", "nl": "Nederland", "no": "Norge", "pl": "Polen", "pt": "Portugal", "ro": "Romania", "rs": "Serbia", "se": "Sverige", "si": "Slovenia", "sk": "Slovakia", "ua": "Ukraina", "uk": "Storbritannia"};
 const ORG_NO = {
 "Iceland's catalogue in the EU portal": "Islands katalog i EU-portalen",
@@ -720,6 +759,8 @@ const ORG_NO = {
 "IRENA": "IRENA",
 "FAO": "FAO",
 "Kartverket — fri visning, nedlasting krever Norge digitalt": "Kartverket – fri visning, nedlasting krever Norge digitalt",
+"Rijkswaterstaat": "Rijkswaterstaat (Nederland)",
+"GEBCO": "GEBCO",
 "ESA and EU": "ESA og EU",
 "CNIG / IGN": "Spanias kartverk",
 "PDOK / Beeldmateriaal Nederland": "Nederlands kartverk",
@@ -841,7 +882,10 @@ const NAME_NO = {
 "INSEE-datasett": "INSEE-datasett",
 "Open Data DK": "Open Data DK",
 "Open Data Albania": "Open Data Albania",
-"OpenStreetMap data": "OpenStreetMap-data"
+"OpenStreetMap data": "OpenStreetMap-data",
+"AHN — Actueel Hoogtebestand Nederland": "AHN – Nederlands høydemodell",
+"Markhöjdmodell Nedladdning": "Markhöjdmodell (nedlasting)",
+"GEBCO gridded bathymetry": "GEBCO dybdemodell"
 };
 
 const TOOLS = [
@@ -1052,10 +1096,29 @@ const ORGS = [
 }
 ];
 
+const GLOSSARY = [
+  { term:{no:"API", en:"API"}, def:{no:"Et grensesnitt en dataportal tilbyr, slik at et program kan hente data direkte i stedet for at et menneske laster ned en fil manuelt.", en:"An interface a data portal offers so a program can fetch data directly, instead of a person downloading a file by hand."} },
+  { term:{no:"CKAN", en:"CKAN"}, def:{no:"Åpen kildekode-programvare som mange offentlige dataportaler er bygget på. Har som regel et fast API-mønster for søk i datasett.", en:"Open-source software many government data portals are built on. Usually has a predictable API pattern for searching datasets."} },
+  { term:{no:"CSV", en:"CSV"}, def:{no:"En enkel tekstfil med data i rader og kolonner, adskilt med komma. Kan åpnes i Excel eller lignende.", en:"A plain text file with data in rows and columns, separated by commas. Opens in Excel or similar."} },
+  { term:{no:"Endepunkt", en:"Endpoint"}, def:{no:"Den konkrete adressen et program sender en forespørsel til for å hente data fra et API.", en:"The specific address a program sends a request to in order to fetch data from an API."} },
+  { term:{no:"GeoJSON", en:"GeoJSON"}, def:{no:"Et tekstformat for geografiske data (punkter, linjer, områder), lesbart av de fleste kartverktøy og nettlesere.", en:"A text format for geographic data (points, lines, areas), readable by most map tools and browsers."} },
+  { term:{no:"JSON", en:"JSON"}, def:{no:"Et enkelt, mye brukt tekstformat for strukturerte data. Mange datasett – ikke bare geografiske – leveres fortsatt som .json-filer.", en:"A simple, widely used text format for structured data. Many datasets – not just geographic ones – are still delivered as .json files."} },
+  { term:{no:"Geoportal", en:"Geoportal"}, def:{no:"En nettside som samler kart og geografiske datasett fra én eller flere kilder på ett sted.", en:"A website that gathers maps and geographic datasets from one or more sources in one place."} },
+  { term:{no:"Lisens (CC BY / NLOD)", en:"Licence (CC BY / NLOD)"}, def:{no:"Vilkårene for å bruke dataene. CC BY og NLOD krever som regel bare at kilden oppgis, og tillater fri bruk ellers.", en:"The terms for using the data. CC BY and NLOD usually only require crediting the source, and otherwise allow free use."} },
+  { term:{no:"Metadata", en:"Metadata"}, def:{no:"Informasjon om et datasett – hvem som lagde det, når, og hva feltene betyr – uten å være selve dataene.", en:"Information about a dataset – who made it, when, and what the fields mean – without being the data itself."} },
+  { term:{no:"Ortofoto", en:"Orthophoto"}, def:{no:"Et flybilde som er korrigert slik at det kan måles i, akkurat som på et kart.", en:"An aerial photo corrected so it can be measured on, just like a map."} },
+  { term:{no:"Shapefile", en:"Shapefile"}, def:{no:"Et eldre, mye brukt filformat for geografiske data. Består faktisk av flere filer som må lastes ned sammen.", en:"An older, widely used file format for geographic data. Actually consists of several files that must be downloaded together."} },
+  { term:{no:"WMS", en:"WMS"}, def:{no:"En tjeneste som leverer ferdigtegnede kartbilder over nettet, til bruk i et kartprogram – man laster ikke ned selve dataene.", en:"A service that delivers ready-drawn map images over the web, for use in mapping software – you do not download the underlying data."} },
+  { term:{no:"WFS", en:"WFS"}, def:{no:"En tjeneste som leverer selve de geografiske dataene over nettet, slik at man kan redigere og analysere dem – i motsetning til WMS.", en:"A service that delivers the actual geographic data over the web, so it can be edited and analysed – unlike WMS."} }
+];
+
+
+/* Tema der fravaer av spesialkilde betyr «ikke kartlagt», ikke «samlet i nasjonalportalen». */
+const NARROW_THEMES = new Set(["ELEV","BATH"]);
 
 const CAP = {"EU": ["Brussel", "Brussels", 50.85, 4.35, "Europe/Brussels"], "GLOBAL": ["Genève", "Geneva", 46.2, 6.14, "Europe/Zurich"], "NORDIC": ["Oslo", "Oslo", 59.91, 10.75, "Europe/Oslo"], "al": ["Tirana", "Tirana", 41.33, 19.82, "Europe/Tirane"], "at": ["Wien", "Vienna", 48.21, 16.37, "Europe/Vienna"], "be": ["Brussel", "Brussels", 50.85, 4.35, "Europe/Brussels"], "bg": ["Sofia", "Sofia", 42.7, 23.32, "Europe/Sofia"], "ch": ["Bern", "Bern", 46.95, 7.45, "Europe/Zurich"], "cy": ["Nikosia", "Nicosia", 35.17, 33.36, "Asia/Nicosia"], "cz": ["Praha", "Prague", 50.09, 14.42, "Europe/Prague"], "de": ["Berlin", "Berlin", 52.52, 13.4, "Europe/Berlin"], "dk": ["København", "Copenhagen", 55.68, 12.57, "Europe/Copenhagen"], "ee": ["Tallinn", "Tallinn", 59.44, 24.75, "Europe/Tallinn"], "es": ["Madrid", "Madrid", 40.42, -3.7, "Europe/Madrid"], "fi": ["Helsingfors", "Helsinki", 60.17, 24.94, "Europe/Helsinki"], "fr": ["Paris", "Paris", 48.86, 2.35, "Europe/Paris"], "gr": ["Athen", "Athens", 37.98, 23.73, "Europe/Athens"], "hr": ["Zagreb", "Zagreb", 45.81, 15.98, "Europe/Zagreb"], "hu": ["Budapest", "Budapest", 47.5, 19.04, "Europe/Budapest"], "ie": ["Dublin", "Dublin", 53.35, -6.26, "Europe/Dublin"], "is": ["Reykjavík", "Reykjavik", 64.15, -21.94, "Atlantic/Reykjavik"], "it": ["Roma", "Rome", 41.9, 12.5, "Europe/Rome"], "lt": ["Vilnius", "Vilnius", 54.69, 25.28, "Europe/Vilnius"], "lu": ["Luxembourg", "Luxembourg", 49.61, 6.13, "Europe/Luxembourg"], "lv": ["Riga", "Riga", 56.95, 24.11, "Europe/Riga"], "md": ["Chișinău", "Chisinau", 47.01, 28.86, "Europe/Chisinau"], "me": ["Podgorica", "Podgorica", 42.44, 19.26, "Europe/Podgorica"], "mk": ["Skopje", "Skopje", 41.996, 21.43, "Europe/Skopje"], "mt": ["Valletta", "Valletta", 35.9, 14.51, "Europe/Malta"], "nl": ["Amsterdam", "Amsterdam", 52.37, 4.9, "Europe/Amsterdam"], "no": ["Oslo", "Oslo", 59.91, 10.75, "Europe/Oslo"], "pl": ["Warszawa", "Warsaw", 52.23, 21.01, "Europe/Warsaw"], "pt": ["Lisboa", "Lisbon", 38.72, -9.14, "Europe/Lisbon"], "ro": ["Bucuresti", "Bucharest", 44.43, 26.1, "Europe/Bucharest"], "rs": ["Beograd", "Belgrade", 44.79, 20.45, "Europe/Belgrade"], "se": ["Stockholm", "Stockholm", 59.33, 18.07, "Europe/Stockholm"], "si": ["Ljubljana", "Ljubljana", 46.06, 14.51, "Europe/Ljubljana"], "sk": ["Bratislava", "Bratislava", 48.15, 17.11, "Europe/Bratislava"], "ua": ["Kyiv", "Kyiv", 50.45, 30.52, "Europe/Kyiv"], "uk": ["London", "London", 51.51, -0.13, "Europe/London"]};
 
-const UI = {"en": {"lede": "Catalogue of open data sources across Europe", "step1": "1 — Country or region", "step2": "2 — Choose theme", "selectLabel": "Choose a country or region", "regions": "Regions", "countries": "Countries", "intro": "Pick a theme below and varde will point you to the right portal.", "special": "Specialist source", "single": "Held in the national portal", "unmapped": "Not mapped in detail", "confirmed": "✓", "unconfirmed": "not checked", "confirmedTitle": "Address checked at least once", "unconfirmedTitle": "Agency is probably right, address not yet checked", "go": "Go to the portal ↗", "other": "Other sources", "foot1": "A curated catalogue of official open data sources across Europe. Pick a theme and a country, and varde points you to the agency that holds the data. The aim is to make open data easier to explore \u2014 and to encourage more people to try. All 37 countries have a national portal, and the specialist sources are added as they are confirmed.", "lightswitch": "light", "darkswitch": "dark", "contact": "Contact", "contactBody": "Suggestions for improvement, or something you are wondering about? Send me an email at ", "orgs": "Professional bodies", "orgsNote": "Member organisations for people working with geographic information.", "tools": "Other useful sites", "toolsNote": "Tools for making and reading maps. Not data sources.", "license": "Open source under the", "madeBy": "Developed by", "sponsor": "Domain supported by", "aboutTitle": "About varde", "footLabel": "On the labels", "foot2": "“Checked” means the address has been checked at least once, at a given point in time. Websites change, so a checked link may still have moved since. “Not checked” means the agency is probably right, but the address has not been checked and may lead to a front page rather than to the datasets. Links point to each source’s own site; varde stores no data itself. Errors do occur."}, "no": {"lede": "Katalog over kilder til åpne data i Europa", "step1": "1 — Land eller region", "step2": "2 — Velg tema", "selectLabel": "Velg land eller region", "regions": "Regioner", "countries": "Land", "intro": "Velg et tema under, så peker varde deg til riktig portal.", "special": "Spesialkilde", "single": "Samlet i nasjonalportalen", "unmapped": "Ikke kartlagt i detalj", "confirmed": "✓", "unconfirmed": "ikke kontrollert", "confirmedTitle": "Adressen er kontrollert minst én gang", "unconfirmedTitle": "Etaten er trolig riktig, adressen er ikke kontrollert", "go": "Gå til portalen ↗", "other": "Andre kilder", "foot1": "Kuratert katalog over offisielle kilder til åpne data i Europa. Velg tema og land, så peker varde deg til etaten som forvalter dataene. Formålet er å gjøre åpne data lettere å utforske. Alle 37 land har nasjonalportal, og spesialkildene legges til etter hvert som de bekreftes.", "lightswitch": "lys", "darkswitch": "mørk", "contact": "Kontakt", "contactBody": "Forslag til forbedringer eller lurer på noe? Send meg e-post på ", "orgs": "Fagmiljøer og foreninger", "orgsNote": "Interesseorganisasjoner for folk som jobber med geografisk informasjon.", "tools": "Andre nyttige nettsider", "toolsNote": "Verktøy for å lage og lese kart. Ikke datakilder.", "license": "Åpen kildekode under", "madeBy": "Utviklet av", "sponsor": "Domene støttet av", "aboutTitle": "Om varde", "footLabel": "Om merkingen", "foot2": "«Kontrollert» betyr at adressen er kontrollert minst én gang, på et bestemt tidspunkt. Nettsider endres, så en kontrollert lenke kan likevel ha flyttet seg siden. «Ikke kontrollert» betyr at etaten trolig er riktig, men at adressen ikke er sjekket og kan peke til en forside i stedet for til datasettene. Lenkene peker til kildens egne sider; varde lagrer ingen data selv. Det tas forbehold om feil."}};
+const UI = {"en": {"lede": "Catalogue of open data sources", "step1": "1 — Country or region", "step2": "2 — Choose theme", "selectLabel": "Choose a country or region", "regions": "Regions", "countries": "Countries", "intro": "Pick a theme below and varde will point you to the right portal.", "special": "Specialist source", "single": "Held in the national portal", "unmapped": "Not mapped in detail", "confirmed": "✓", "unconfirmed": "✗", "confirmedTitle": "Address checked at least once", "unconfirmedTitle": "Agency is probably right, address not yet checked", "go": "Go to the portal ↗", "other": "Other sources", "foot1": "A curated catalogue of official open data sources across Europe. Pick a theme and a country, and varde points you to the agency that holds the data. The aim is to make open data easier to explore \u2014 and to encourage more people to try.", "lightswitch": "light", "darkswitch": "dark", "contact": "Contact", "contactBody": "Suggestions for improvement, or something you are wondering about? Send me an email at ", "orgs": "Professional bodies", "orgsNote": "Member organisations for people working with geographic information.", "tools": "Other useful sites", "toolsNote": "Tools for making and reading maps. Not data sources.", "license": "Open source under the", "madeBy": "Developed by", "sponsor": "Domain supported by", "aboutTitle": "About varde", "footLabel": "On the labels", "foot2": "✓ means the address has been checked at least once, at a given point in time. Websites change, so a ✓ link may still have moved since. ✗ means the agency is probably right, but the address has not been checked and may lead to a front page rather than to the datasets. Links point to each source’s own site; varde stores no data itself. Errors do occur.", "copyBtn": "Copy overview", "copied": "Copied!", "copyFailed": "Could not copy", "funCapital": "Capital", "funPop": "Population", "funArea": "Area", "funLangs": "Languages", "glossary": "Glossary", "glossaryNote": "Short explanations of terms used across the sources."}, "no": {"lede": "Katalog over kilder til åpne data", "step1": "1 — Land eller region", "step2": "2 — Velg tema", "selectLabel": "Velg land eller region", "regions": "Regioner", "countries": "Land", "intro": "Velg et tema under, så peker varde deg til riktig portal.", "special": "Spesialkilde", "single": "Samlet i nasjonalportalen", "unmapped": "Ikke kartlagt i detalj", "confirmed": "✓", "unconfirmed": "✗", "confirmedTitle": "Adressen er kontrollert minst én gang", "unconfirmedTitle": "Etaten er trolig riktig, adressen er ikke kontrollert", "go": "Gå til portalen ↗", "other": "Andre kilder", "foot1": "Kuratert katalog over offisielle kilder til åpne data i Europa. Velg tema og land, så peker varde deg til etaten som forvalter dataene. Formålet er å gjøre åpne data lettere å utforske.", "lightswitch": "lys", "darkswitch": "mørk", "contact": "Kontakt", "contactBody": "Forslag til forbedringer eller lurer på noe? Send meg e-post på ", "orgs": "Fagmiljøer og foreninger", "orgsNote": "Interesseorganisasjoner for folk som jobber med geografisk informasjon.", "tools": "Andre nyttige nettsider", "toolsNote": "Verktøy for å lage og lese kart. Ikke datakilder.", "license": "Åpen kildekode under", "madeBy": "Utviklet av", "sponsor": "Domene støttet av", "aboutTitle": "Om varde", "footLabel": "Om merkingen", "foot2": "✓ betyr at adressen er kontrollert minst én gang, på et bestemt tidspunkt. Nettsider endres, så en ✓-lenke kan likevel ha flyttet seg siden. ✗ betyr at etaten trolig er riktig, men at adressen ikke er sjekket og kan peke til en forside i stedet for til datasettene. Lenkene peker til kildens egne sider; varde lagrer ingen data selv. Det tas forbehold om feil.", "copyBtn": "Kopier oversikt", "copied": "Kopiert!", "copyFailed": "Kunne ikke kopiere", "funCapital": "Hovedstad", "funPop": "Innbyggere", "funArea": "Areal", "funLangs": "Spr\u00e5k", "glossary": "Ordliste", "glossaryNote": "Korte forklaringer på ord som går igjen i kildene."}};
 
 /* ---------- ASCII-klode ----------
    Strålekast mot kule, oppslag i pakket landmaske (1 bit per grad),
@@ -1178,13 +1241,14 @@ function labelSwitch(){
 (function(){
   const b = document.getElementById('lightswitch');
   if(!b) return;
-  const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
   const set = on => {
     document.body.classList.toggle('light', on);
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
     labelSwitch();
   };
-  set(prefersLight);
+  /* Alltid mørk ved første besøk. Maskinens egen lys/mørk-innstilling
+     skal ikke overstyre varde sin drakt; bryteren er brukerens valg. */
+  set(false);
   b.onclick = () => set(!document.body.classList.contains('light'));
 })();
 
@@ -1237,9 +1301,61 @@ function loadWeather(){
     el.textContent = city + "  \u2600 " + d.rise + "\u2013" + d.set +
                      "  \u00b7  " + d.h + "t " + d.m + "m";
   }
+  loadFunFact(place);
 }
 
 let place = "no", theme = null;
+
+/* ---------- visste du at (REST Countries) ---------- */
+const ISO2_OVERRIDE = { uk:"gb" };
+function isoFor(placeCode){
+  const p = PLACES[placeCode];
+  if(!p || p.group === "Regions") return null;
+  return ISO2_OVERRIDE[placeCode] || placeCode;
+}
+
+const funFactCache = {};
+let funFactSeq = 0;
+
+async function loadFunFact(placeCode){
+  const el = document.getElementById('funFact');
+  if(!el) return;
+  const iso = isoFor(placeCode);
+  if(!iso){ el.innerHTML = ''; return; }
+
+  if(funFactCache[iso]){ renderFunFact(funFactCache[iso]); return; }
+
+  const seq = ++funFactSeq;
+  el.innerHTML = '';
+  try{
+    const res = await fetch(`https://restcountries.com/v3.1/alpha/${iso}?fields=capital,population,area,flag,languages`);
+    if(!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    const c = Array.isArray(data) ? data[0] : data;
+    funFactCache[iso] = c;
+    if(seq === funFactSeq && place === placeCode) renderFunFact(c);
+  } catch(e){
+    /* stille feil \u2013 ingen morsom fakta i dag */
+  }
+}
+
+function renderFunFact(c){
+  const el = document.getElementById('funFact');
+  if(!el || !c) return;
+  const numFmt = lang === "no" ? "nb-NO" : "en-GB";
+  const cap = Array.isArray(c.capital) ? c.capital[0] : c.capital;
+  const pop = c.population ? c.population.toLocaleString(numFmt) : null;
+  const area = c.area ? Math.round(c.area).toLocaleString(numFmt) : null;
+  const langs = c.languages ? Object.values(c.languages).slice(0,3).join(', ') : null;
+
+  const bits = [];
+  if(cap)   bits.push(`${t('funCapital')}: ${cap}`);
+  if(pop)   bits.push(`${t('funPop')}: ${pop}`);
+  if(area)  bits.push(`${t('funArea')}: ${area} km\u00b2`);
+  if(langs) bits.push(`${t('funLangs')}: ${langs}`);
+
+  el.innerHTML = `<span class="flag" aria-hidden="true">${c.flag || ''}</span>${esc(bits.join(' \u00b7 '))}`;
+}
 
 const placeEl  = document.getElementById('place');
 const themesEl = document.getElementById('themes');
@@ -1292,11 +1408,15 @@ function applyLang(){
   loadWeather();
   buildTools();
   buildOrgs();
+  buildGlossary();
+  document.getElementById('glossaryTitle').textContent = t('glossary');
+  document.getElementById('glossaryNote').textContent  = t('glossaryNote');
+  copyBtn.textContent = t('copyBtn');
   document.getElementById('foot2').innerHTML       = brand(t('foot2'));
   placeEl.setAttribute('aria-label', t('selectLabel'));
   buildPlaces();
   buildThemes();
-  if(theme) render(); else document.getElementById('result').innerHTML = '';
+  render();
 }
 
 document.querySelectorAll('.langs button').forEach(b => {
@@ -1333,8 +1453,8 @@ function buildTools(){
     </div>`).join('');
 }
 
-function buildPlaces(){
-  placeEl.innerHTML = '';
+function fillPlaceSelect(selectEl, selectedCode){
+  selectEl.innerHTML = '';
   const regions = Object.entries(PLACES).filter(([,v]) => v.group === "Regions");
   const countries = Object.entries(PLACES).filter(([,v]) => v.group !== "Regions")
     .map(([k,v]) => [k, placeName(k)])
@@ -1344,19 +1464,31 @@ function buildPlaces(){
   regions.forEach(([k]) => {
     const o = document.createElement('option');
     o.value = k; o.textContent = placeName(k);
-    if(k === place) o.selected = true;
+    if(k === selectedCode) o.selected = true;
     g1.appendChild(o);
   });
-  placeEl.appendChild(g1);
+  selectEl.appendChild(g1);
 
   const g2 = document.createElement('optgroup'); g2.label = t('countries');
   countries.forEach(([k,nm]) => {
     const o = document.createElement('option');
     o.value = k; o.textContent = nm;
-    if(k === place) o.selected = true;
+    if(k === selectedCode) o.selected = true;
     g2.appendChild(o);
   });
-  placeEl.appendChild(g2);
+  selectEl.appendChild(g2);
+}
+
+function buildPlaces(){
+  fillPlaceSelect(placeEl, place);
+}
+
+function buildGlossary(){
+  document.getElementById('glossaryBody').innerHTML = GLOSSARY.map(g => `
+    <div class="term">
+      <span class="term-n">${esc(g.term[lang])}</span>
+      <p class="term-d">${esc(g.def[lang])}</p>
+    </div>`).join('');
 }
 
 
@@ -1389,15 +1521,25 @@ function revealResult(){
 
 function esc(s){ return String(s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
 
-function render(){
-  const p = PLACES[place];
-  const pn = placeName(place);
-  const tn = themeName(theme);
-  const nat = (NAT_SPECIAL[place] || {})[theme.id] || [];
-  const eu  = EU_SPECIAL[theme.id] || [];
+function vmark(v){
+  return v
+    ? `<span class="v ok" title="${esc(t('confirmedTitle'))}">${t('confirmed')}</span>`
+    : `<span class="v no" title="${esc(t('unconfirmedTitle'))}">${t('unconfirmed')}</span>`;
+}
+
+function computeResult(placeCode, themeObj){
+  const p = PLACES[placeCode];
+  const pn = placeName(placeCode);
+  const tn = themeName(themeObj);
+  const nat = (NAT_SPECIAL[placeCode] || {})[themeObj.id] || [];
+  const eu  = EU_SPECIAL[themeObj.id] || [];
   const ph  = PHRASE[lang];
 
-  const countryMapped = Boolean(NAT_SPECIAL[place]) || p.group === "Regions";
+  /* Smale tema: nasjonalportalen er ikke en troverdig inngang til f.eks.
+     laserdata eller sjødybde, så uten spesialkilde sier vi heller fra. */
+  const countryMapped = NARROW_THEMES.has(themeObj.id)
+    ? p.group === "Regions"
+    : (Boolean(NAT_SPECIAL[placeCode]) || p.group === "Regions");
   const state = nat.length ? "special" : (countryMapped ? "single" : "unmapped");
 
   let primary, rest;
@@ -1412,13 +1554,15 @@ function render(){
   rest = rest.slice(0,3);
 
   const BADGE = { special:[t('special'),"ok"], single:[t('single'),"ok"], unmapped:[t('unmapped'),"warn"] }[state];
+  const caveat = state === "unmapped" ? ph.caveat(tn, pn) : '';
 
-  const vmark = v => v
-    ? `<span class="v ok" title="${esc(t('confirmedTitle'))}">${t('confirmed')}</span>`
-    : `<span class="v no" title="${esc(t('unconfirmedTitle'))}">${t('unconfirmed')}</span>`;
+  return { pn, tn, primary, rest, state, BADGE, caveat };
+}
 
-  const caveat = state === "unmapped"
-    ? `<p class="caveat">${brand(esc(ph.caveat(tn, pn)))}</p>` : '';
+function renderSingle(){
+  const { pn, tn, primary, rest, BADGE, caveat } = computeResult(place, theme);
+
+  const caveatHtml = caveat ? `<p class="caveat">${brand(esc(caveat))}</p>` : '';
 
   const alts = rest.map(([n,o,u,v]) => `
     <a class="alt" href="${esc(u)}" target="_blank" rel="noopener">
@@ -1437,11 +1581,46 @@ function render(){
       <p class="why">${esc(primary.d)}</p>
       <p class="go">${esc(t('go'))}</p>
     </a>
-    ${caveat}
+    ${caveatHtml}
     ${rest.length ? `<p class="also">${esc(t('other'))}</p>${alts}` : ''}`;
 }
 
-placeEl.onchange = () => { place = placeEl.value; loadWeather(); if(theme){ render(); revealResult(); } };
+function render(){
+  if(!theme){ resEl.innerHTML = ''; return; }
+  renderSingle();
+}
+
+placeEl.onchange = () => { place = placeEl.value; loadWeather(); render(); if(theme) revealResult(); };
+
+const copyBtn = document.getElementById('copyBtn');
+
+function buildOverviewText(placeCode){
+  const pn = placeName(placeCode);
+  const lines = THEMES.map(th => {
+    const r = computeResult(placeCode, th);
+    return `${themeName(th)}: ${r.primary.n} (${r.primary.o}) \u2014 ${r.primary.u}`;
+  });
+  return `varde \u2014 ${pn}\n\n${lines.join('\n')}`;
+}
+
+let copyResetTimer = null;
+function flashCopyBtn(msg){
+  if(copyResetTimer) clearTimeout(copyResetTimer);
+  copyBtn.textContent = msg;
+  copyResetTimer = setTimeout(() => { copyBtn.textContent = t('copyBtn'); }, 1800);
+}
+
+copyBtn.onclick = () => {
+  const text = buildOverviewText(place);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(
+      () => flashCopyBtn(t('copied')),
+      () => flashCopyBtn(t('copyFailed'))
+    );
+  } else {
+    flashCopyBtn(t('copyFailed'));
+  }
+};
 
 applyLang();
 </script>

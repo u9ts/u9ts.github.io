@@ -120,6 +120,7 @@
   }
   pre.globe:active{ cursor:grabbing; }
   @media (max-width:640px){ pre.globe{ font-size:5px; margin:0 auto -4.2em; } }
+  pre.globe{ cursor:pointer; }
 
   pre.wordmark{
     font-family:"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
@@ -424,7 +425,7 @@
 
 <header class="hero">
   <div class="wrap">
-<pre class="globe" id="globe" aria-hidden="true"></pre>
+<pre class="globe" id="globe" aria-hidden="true" title="Dobbeltklikk"></pre>
 <pre class="wordmark slant" role="img" aria-label="varde">    _    __ ___    ____   ____   ______
    | |  / //   |  / __ \ / __ \ / ____/
    | | / // /| | / /_/ // / / // __/   
@@ -650,7 +651,7 @@ const NAT_SPECIAL = {
        GOVE:[["Enhetsregisteret","Brønnøysund Register Centre","https://data.brreg.no",1]],
        TRAN:[["Dataportalen","Norwegian Public Roads Administration","https://dataut.vegvesen.no/dataset",1],
              ["Timetable data","Entur","https://developer.entur.no/open-data/timetable",1]],
-       HEAL:[["Statistics banks","Norwegian Institute of Public Health","https://fhi.no/en/fi/statistics-from-niph/statistikkbanker",1]],
+       HEAL:[["FHI Statistikk","Norwegian Institute of Public Health","https://statistikk.fhi.no/",1]],
        ENER:[["NVE map catalogue","NVE","https://kartkatalog.nve.no",1]],
        AGRI:[["Kilden","NIBIO","https://kilden.nibio.no",1],
              ["Marine datasets","IMR","https://kart.hi.no/datasett/",1]],
@@ -669,7 +670,7 @@ const NAT_SPECIAL = {
   fi:{ ORTO:[["Ortoilmakuva","Maanmittauslaitos","https://asiointi.maanmittauslaitos.fi/karttapaikka/tiedostopalvelu/ortoilmakuva",1]],
        REGI:[["Paikkatietoikkuna","Maanmittauslaitos","https://www.paikkatietoikkuna.fi",1]],
        ENVI:[["FMI Open Data","Ilmatieteen laitos","https://en.ilmatieteenlaitos.fi/open-data",1]],
-       SOCI:[["StatFin","Tilastokeskus","https://stat.fi/en/services/statistical-data-services/statistical-databases/statfin",1]] },
+       SOCI:[["StatFin","Tilastokeskus","https://pxdata.stat.fi/PxWeb/pxweb/en/StatFin/",1]] },
   is:{ REGI:[["Landmælingar Íslands","LMÍ","https://www.lmi.is",1]],
        SOCI:[["Statistical database","Statistics Iceland","https://www.statice.is/stat-bank",1]],
        ENVI:[["Weather observations API","Icelandic Met Office","https://api.vedur.is/weather/",1]] },
@@ -887,7 +888,6 @@ const NAME_NO = {
 "Timetable data": "Rutedata",
 "Trafiklab APIs": "Trafiklab API-er",
 "Weather observations API": "Værobservasjoner (API)",
-"Statistics banks": "Statistikkbanker",
 "Statistics database": "Statistikkdatabasen",
 "Statbel open data": "Statbel åpne data",
 "ČSÚ open data": "ČSÚ åpne data",
@@ -1264,6 +1264,17 @@ function labelSwitch(){
   b.title = txt;
   b.setAttribute('aria-label', txt);
 }
+
+/* Paaskeegg: dobbeltklikk paa kloden aapner nullschool sin globus.
+   Bevisst uten tastaturtilgang \u2013 kloden er dekorativ (aria-hidden),
+   og lenken er et funn, ikke en del av navigasjonen. */
+(function(){
+  const g = document.getElementById('globe');
+  if(!g) return;
+  g.addEventListener('dblclick', () => {
+    window.open('https://earth.nullschool.net', '_blank', 'noopener');
+  });
+})();
 
 (function(){
   const b = document.getElementById('lightswitch');
